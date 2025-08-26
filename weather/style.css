@@ -1,0 +1,260 @@
+/* ------------------ RESET ------------------ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to bottom, #dcdcdc 50%, #e9e9e9 50%);
+  font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+/* ------------------ MAIN CARD ------------------ */
+main {
+  width: 320px;
+  min-height: 380px;
+  padding: 30px 20px;
+  background: #f7f7f7;
+  border-radius: 30px;
+  box-shadow: 0 10px 40px #5553;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  text-align: center;
+}
+
+/* ------------------ SEARCH FORM ------------------ */
+main form {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  border: 2px solid #ddd;
+  border-radius: 30px;
+  overflow: hidden;
+  background: #fff;
+  transition: 0.3s ease-in-out;
+}
+
+main form input {
+  flex: 1;
+  padding: 12px 18px;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  background: transparent;
+}
+
+main form button {
+  width: 50px;
+  height: 50px;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease-in-out;
+}
+
+main form button:hover {
+  background: #f0f0f0;
+}
+
+main form button i {
+  font-size: 1.3rem;
+  color: #555;
+  opacity: 0.8;
+}
+
+/* ------------------ RESULT SECTION ------------------ */
+.result {
+  width: 100%;
+}
+
+.result .name {
+  font-size: 1.3rem;
+  font-weight: 600;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: #222;
+}
+
+.result .name img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  filter: drop-shadow(0 6px 16px #5553);
+}
+
+/* ------------------ TEMPERATURE ------------------ */
+.temperature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 15px 0;
+}
+
+.temperature img {
+  width: 80px;
+  margin-bottom: 8px;
+  border-radius: 20px;
+  filter: drop-shadow(0 10px 30px #5553);
+}
+
+.temperature figcaption {
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: #111;
+}
+
+.temperature figcaption sup {
+  font-size: 1.2rem;
+  position: relative;
+  top: -8px;
+}
+
+/* ------------------ DESCRIPTION ------------------ */
+.description {
+  font-size: 1rem;
+  color: #555;
+  margin: 6px 0 20px;
+  font-style: italic;
+}
+
+/* ------------------ EXTRA INFO BOXES ------------------ */
+.result ul {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.result ul li {
+  border-radius: 15px;
+  padding: 14px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.result ul li:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.result ul li i {
+  font-size: 1.8rem;
+  color: #fff;
+}
+
+/* ------------------ UNIQUE BOX COLORS ------------------ */
+.result ul li:nth-child(1) {
+  background: linear-gradient(145deg, #ffaf40, #ff8c00); /* Clouds */
+}
+
+.result ul li:nth-child(2) {
+  background: linear-gradient(145deg, #9c27b0, #6a1b9a); /* Humidity */
+}
+
+.result ul li:nth-child(3) {
+  background: linear-gradient(145deg, #2196f3, #1976d2); /* Pressure */
+}
+
+/* ------------------ RESPONSIVE ------------------ */
+@media (max-width: 400px) {
+  main {
+    width: 90%;
+    padding: 20px;
+  }
+
+  .result ul {
+    grid-template-columns: 1fr;
+  }
+
+  .result ul li {
+    min-height: 90px;
+  }
+}
+/* ------------------ HEADER ------------------ */
+.header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.header h2 {
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.header button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 1.3rem;
+  color: #555;
+  transition: color 0.3s ease-in-out;
+}
+
+.header button:hover {
+  color: #111;
+}
+
+/* ------------------ DARK MODE ------------------ */
+body.dark-mode {
+  background: linear-gradient(to bottom, #1a1a1a 50%, #111 50%);
+  color: #f0f0f0;
+}
+
+body.dark-mode main {
+  background: #222;
+  box-shadow: 0 10px 40px #0006;
+}
+
+body.dark-mode .header h2 {
+  color: #f0f0f0;
+}
+
+body.dark-mode main form {
+  border-color: #444;
+  background: #2c2c2c;
+}
+
+body.dark-mode main form input {
+  color: #fff;
+}
+
+body.dark-mode main form button i {
+  color: #ddd;
+}
+
+body.dark-mode .result .name {
+  color: #fff;
+}
+
+body.dark-mode .description {
+  color: #ccc;
+}
+
+/* Dark mode toggle button icons */
+body.dark-mode #themeToggle i::before {
+  content: "\f185"; /* sun icon */
+}

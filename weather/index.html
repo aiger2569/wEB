@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather App</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-papRpnHL5RjVhPIdOExwQjl52/..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body>
+  <main>
+    <header class="header">
+  <h2>Weather App</h2>
+  <button id="themeToggle" aria-label="Toggle Dark Mode">
+    <i class="fa-solid fa-moon"></i>
+  </button>
+</header>
+
+    <form action="">
+      <input type="text" autocomplete="off" id="valueSearch" placeholder="Search city..."> 
+      <button type="submit">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
+    </form>
+
+    <section class="result">
+      <figure class="name" id="city">
+        <figcaption>London</figcaption> 
+        <img src="download.png" alt="Flag of United Kingdom">
+      </figure>
+
+      <figure class="temperature">
+        <img src="weathericon.jpg" alt="Weather Icon">
+        <figcaption>
+          <span id="temperature">31</span>
+          <sup>°</sup>
+        </figcaption>
+      </figure>
+
+      <p class="description" id="description">Overcast clouds</p>
+
+      <ul>
+        <li>
+          <span>Clouds</span>
+          <i class="fa-solid fa-cloud"></i>
+          <span id="clouds">98</span>%
+        </li>
+        <li>
+          <span>Humidity</span>
+          <i class="fa-solid fa-droplet"></i>
+          <span id="humidity">78</span>%
+        </li>
+        <li> 
+          <span>Pressure</span>
+          <i class="fa-solid fa-gauge"></i>
+          <span id="pressure">1000</span> pa
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
