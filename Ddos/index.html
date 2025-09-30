@@ -1,0 +1,203 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>DDoS Globe Visualiser — Demo</title>
+  <style>
+    html,body { height:100%; margin:0; background:#0b1020; color:#ddd; font-family:Inter, Roboto, sans-serif; }
+    #globeViz { width:100%; height:100%; display:block; }
+    .overlay {
+      position: absolute; left:12px; top:12px; z-index:3;
+      background: rgba(6,8,12,0.6); padding:12px; border-radius:8px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+    }
+    .legend { font-size:13px; line-height:1.35 }
+    .panel { margin-top:8px; font-size:13px }
+    .badge { display:inline-block; padding:4px 8px; border-radius:6px; background:#ff4d4d; color:white; margin-right:6px; font-weight:600; }
+  </style>
+  <!-- Globe.gl and dependencies via CDN -->
+  <script src="https://unpkg.com/three@0.153.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/d3@7"></script>
+  <script src="https://unpkg.com/globe.gl"></script>
+</head>
+<body>
+  <div id="globeViz"></div>
+  <div class="overlay">
+    <div style="font-weight:700; font-size:15px">DDoS Visualiser — Demo</div>
+    <div class="panel legend">
+      <div><span class="badge">LIVE</span> Simulated stream (replace with real telemetry WebSocket)</div>
+      <div style="margin-top:6px">Red arcs = incoming attack path. Pulsing dots = attack source intensity.</div>
+    </div>
+    <div id="stats" class="panel">Events: <span id="count">0</span> · Active arcs: <span id="active">0</span></div>
+  </div>
+
+<script>
+(async () => {
+  const Globe = GlobeGL ? GlobeGL : window.Globe; // compatibility
+  const world = Globe()
+    (document.getElementById('globeViz'))
+    .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+    .backgroundColor('#0b0f1a')
+    .showAtmosphere(true)
+    .atmosphereColor('rgba(60,90,255,0.1)')
+    .atmosphereAltitude(0.2)
+    .pointAltitude('size')
+    .pointWeight(1)
+    .pointColor(() => 'rgba(255,90,90,0.9)')
+    .pointsTransitionDuration(0)
+    .arcColor(() => '#ff6666')
+    .arcDashLength(0.4)
+    .arcDashGap(0.8)
+    .arcDashAnimateTime(2000)
+    .arcStroke(0.9)
+    .arcAltitudeAutoScale(true)
+    .arcAltitude(0.2)
+    .onPointClick(p => {
+      // example: show console details
+      console.log('Clicked point', p);
+      alert(`Source: ${p.ip}\nIntensity: ${p.intensity}\nTime: ${new Date(p.time).toLocaleString()}`)
+    });
+
+  // internal state
+  let totalEvents = 0;
+  const activeArcs = [];
+  const points = [];
+
+  // helper: random sample lat/long around high-density internet regions for demo
+  const demoSources = [
+    { city:'Beijing', lat:39.90, lng:116.39 },
+    { city:'Mumbai', lat:19.07, lng:72.87 },
+    { city:'New York', lat:40.71, lng:-74.01 },
+    { city:'São Paulo', lat:-23.55, lng:-46.63 },
+    { city:'Moscow', lat:55.75, lng:37.62 },
+    { city:'Lagos', lat:6.52, lng:3.37 },
+    { city:'Jakarta', lat:-6.20, lng:106.82 },
+    { city:'Frankfurt', lat:50.11, lng:8.68 },
+    { city:'Seoul', lat:37.56, lng:126.97 },
+    { city:'Sydney', lat:-33.86, lng:151.20 }
+  ];
+
+  // target of attacks (can be one or multiple): demo uses a fixed target
+  const demoTargets = [
+    { name: 'My Server Cluster', lat:28.6139, lng:77.2090 } // New Delhi (example)
+  ];
+
+  // add initial empty sets
+  world.arcsData([]).pointsData([]);
+
+  // update UI stats
+  function updateStats() {
+    document.getElementById('count').innerText = totalEvents;
+    document.getElementById('active').innerText = activeArcs.length;
+  }
+
+  // Create a visual attack event object and animate
+  function handleAttackEvent(evt) {
+    // evt should contain: { srcLat, srcLng, dstLat, dstLng, intensity, ip, time }
+    totalEvents++;
+    const time = evt.time || Date.now();
+
+    // create pulse point for source
+    const srcPoint = {
+      lat: evt.srcLat,
+      lng: evt.srcLng,
+      size: Math.min(0.03 + evt.intensity * 0.02, 0.25),
+      ip: evt.ip || 'anon',
+      intensity: evt.intensity,
+      time
+    };
+    points.push(srcPoint);
+    // keep recent points (only last 200)
+    if (points.length > 200) points.shift();
+    world.pointsData(points);
+
+    // create arc
+    const arc = {
+      startLat: evt.srcLat,
+      startLng: evt.srcLng,
+      endLat: evt.dstLat,
+      endLng: evt.dstLng,
+      color: ['rgba(255,60,60,0.9)', 'rgba(255,200,200,0.2)'][0],
+      stroke: Math.min(2 + Math.floor(evt.intensity/2), 6),
+      timestamp: time
+    };
+    activeArcs.push(arc);
+    // prune after some seconds
+    setTimeout(() => {
+      const idx = activeArcs.indexOf(arc);
+      if (idx >= 0) {
+        activeArcs.splice(idx,1);
+        world.arcsData(activeArcs);
+        updateStats();
+      }
+    }, 6000 + evt.intensity * 4000); // arc lingers longer for stronger events
+
+    world.arcsData(activeArcs);
+    updateStats();
+  }
+
+  // SIMULATED STREAM: emits random 'attacks' every 600—1200ms
+  function startSimulation() {
+    function emit() {
+      const src = demoSources[Math.floor(Math.random()*demoSources.length)];
+      const dst = demoTargets[Math.floor(Math.random()*demoTargets.length)];
+      const intensity = Math.floor(Math.random()*10)+1; // 1..10
+      const fuzzLat = (Math.random()-0.5) * 1.2; // small jitter
+      const fuzzLng = (Math.random()-0.5) * 1.2;
+      const evt = {
+        srcLat: src.lat + fuzzLat,
+        srcLng: src.lng + fuzzLng,
+        dstLat: dst.lat + (Math.random()-0.5)*0.2,
+        dstLng: dst.lng + (Math.random()-0.5)*0.2,
+        intensity,
+        ip: `203.0.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`,
+        time: Date.now()
+      };
+      handleAttackEvent(evt);
+      setTimeout(emit, 600 + Math.random()*600);
+    }
+    emit();
+  }
+  startSimulation();
+
+  // ----- Example: hook up a real WebSocket instead of simulation -----
+  /*
+    // Example expected incoming message JSON schema:
+    // { src_ip: "203.0.113.5", src_lat: 35.2, src_lng: 139.7, dst_lat: 28.6, dst_lng: 77.2, intensity: 8, ts: 1690000000000 }
+    const ws = new WebSocket('wss://your-telemetry-endpoint.example/attacks');
+    ws.onopen = () => console.log('WS open');
+    ws.onmessage = (m) => {
+      try {
+        const data = JSON.parse(m.data);
+        // Validate fields, clamp/clean values (very important)
+        if (!data.src_lat || !data.src_lng) return; // ignore bad messages
+        handleAttackEvent({
+          srcLat: +data.src_lat,
+          srcLng: +data.src_lng,
+          dstLat: +data.dst_lat,
+          dstLng: +data.dst_lng,
+          intensity: Math.min(10, Math.max(1, +data.intensity || 1)),
+          ip: data.src_ip,
+          time: data.ts || Date.now()
+        });
+      } catch(e) { console.warn('Bad message', e) }
+    };
+  */
+
+  // Optional: camera & controls tweaks
+  world.pointOfView({ lat: 20, lng: 80, altitude: 2.2 }, 1500);
+
+  // small animation for pulsing points using size
+  (function animatePulse() {
+    const now = Date.now();
+    world.pointsData(points.map(p => ({
+      ...p,
+      size: Math.max(0.01, 0.02 + 0.02*Math.abs(Math.sin(now/300 + (p.ip||'0').length)))
+    })));
+    requestAnimationFrame(animatePulse);
+  })();
+
+})();
+</script>
+</body>
+</html>
